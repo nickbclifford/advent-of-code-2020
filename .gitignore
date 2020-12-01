@@ -1,3 +1,7 @@
+day*
+!day*.hs
+input.txt
+
 dist
 dist-*
 cabal-dev
