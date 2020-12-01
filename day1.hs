@@ -17,7 +17,7 @@ find3Sum (x:xs) = case findSum (2020 - x) xs of
 main :: IO ()
 main = do
     input <- readFile "input.txt"
-    let entries = map read $ lines input :: [Int]
+    let entries = map read $ lines input
         (a, b) = fromJust $ findSum 2020 entries
         (x, y, z) = fromJust $ find3Sum entries
     print $ a * b
