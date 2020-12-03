@@ -17,7 +17,6 @@ stepCount grid down right row col =
        then 0
        else isTree grid row' col' + stepCount grid down right row' col'
 
-
 countSlope :: Grid -> Int -> Int -> Integer
 countSlope grid right down = stepCount grid down right 0 0
 
