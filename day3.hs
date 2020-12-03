@@ -17,13 +17,10 @@ stepCount grid down right row col =
        then 0
        else isTree grid row' col' + stepCount grid down right row' col'
 
-countSlope :: Grid -> Int -> Int -> Integer
-countSlope grid right down = stepCount grid down right 0 0
-
 main :: IO ()
 main = do
     input <- readFile "input.txt"
     let grid = lines input
-        execSlope = countSlope grid
+        execSlope right down = stepCount grid down right 0 0
     print $ execSlope 3 1
     print . product . map (uncurry execSlope) $ [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
