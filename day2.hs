@@ -2,9 +2,6 @@ import Data.Char
 import Text.ParserCombinators.ReadP hiding (count)
 import Utils
 
-parseInt :: ReadP Int
-parseInt = read <$> munch1 isDigit
-
 data Password = Password Int Int Char String
 
 parsePassword :: ReadP Password
