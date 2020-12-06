@@ -3,10 +3,11 @@ import qualified Data.Text.IO as TI
 import qualified Data.Set as S
 import Utils
 
--- the common elements between a single set is just that set
 commonEls :: [S.Set Char] -> S.Set Char
-commonEls [x] = x
-commonEls (x:xs) = foldr S.intersection x xs
+commonEls (x:xs) = 
+    if null xs
+    then x -- the common elements between a single set is just that set
+    else foldr S.intersection x xs
 
 main :: IO ()
 main = do
