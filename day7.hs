@@ -1,4 +1,3 @@
-import Control.Applicative (liftA2)
 import Data.Char
 import Data.Foldable
 import qualified Data.Map.Strict as M
@@ -13,31 +12,38 @@ parseBag = (\a b -> a ++ " " ++ b)
     <*  string " bag"
     <*  optional (char 's')
 
-newtype Rule = Rule { getRule :: M.Map String [(Int, String)] }
+type Amount = (Int, String)
+type Rules = M.Map String [Amount]
+newtype RuleT = Rule { getRule :: Rules }
 
-parseRule :: ReadP Rule
-parseRule = Rule <$> (M.singleton 
+parseAmount :: ReadP Amount
+parseAmount = (,)
+    <$> parseInt
+    <*  char ' '
+    <*> parseBag
+
+parseRule :: ReadP Rules
+parseRule = M.singleton 
     <$> parseBag
     <*  string " contain "
-    <*> (([] <$ string "no other bags") <++ ((,)
-        <$> parseInt
-        <*  char ' '
-        <*> parseBag) `sepBy1` string ", ")
-    <*  char '.')
+    <*> ([] <$ string "no other bags") <++ (parseAmount `sepBy1` string ", ")
+    <*  char '.'
 
-instance Read Rule where
-    readsPrec _ = readP_to_S parseRule
+instance Read RuleT where
+    readsPrec _ = readP_to_S (Rule <$> parseRule)
+
+containsGold :: Rules -> [String] -> Bool
+containsGold rules colors =
+    if "shiny gold" `elem` colors
+    then True
+    else any (containsGold rules . map snd . (rules M.!)) colors
+
+totalBags :: Rules -> String -> Int
+totalBags rules color = 1 + sum (map (\(i, c) -> i * totalBags rules c) (rules M.! color))
 
 main :: IO ()
 main = do
     input <- readFile "input.txt"
     let rules = mconcat . map (getRule . read) . lines $ input
-        containsGold vals =
-            if "shiny gold" `elem` map snd vals
-            then True
-            else any (\(_, c) -> containsGold (rules M.! c)) vals
-        totalBags color = 1 + case rules M.! color of
-            [] -> 0
-            rules -> sum $ map (\(i, c) -> i * totalBags c) rules
-    print . countPred containsGold . toList $ rules
-    print $ totalBags "shiny gold" - 1
+    print . countPred (containsGold rules . map snd) . toList $ rules
+    print $ totalBags rules "shiny gold" - 1 -- totalBags includes the outermost bag, we only want what's inside
