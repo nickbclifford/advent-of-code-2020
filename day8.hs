@@ -10,7 +10,7 @@ parseInstruction :: ReadP Instruction
 parseInstruction = do
     ins <- stringSize 3
     char ' '
-    sign <- char '+' +++ char '-'
+    sign <- get
     i <- parseInt
     let param = if sign == '-' then negate i else i
     return $ Instruction ins param
