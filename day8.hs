@@ -27,10 +27,10 @@ runProgram instructions (acc, pc, seen) =
     else
         if pc `S.member` seen
         then (acc, Loops)
-        else case instructions !! pc of
-            Instruction "nop" _ -> runProgram instructions (acc, pc + 1, seen')
-            Instruction "acc" p -> runProgram instructions (acc + p, pc + 1, seen')
-            Instruction "jmp" p -> runProgram instructions (acc, pc + p, seen')
+        else runProgram instructions $ case instructions !! pc of
+            Instruction "nop" _ -> (acc, pc + 1, seen')
+            Instruction "acc" p -> (acc + p, pc + 1, seen')
+            Instruction "jmp" p -> (acc, pc + p, seen')
             where seen' = S.insert pc seen
 
 mutate :: Instruction -> Instruction
@@ -46,7 +46,7 @@ mutateAt i xs = case splitAt i xs of
 main :: IO ()
 main = do
     input <- readFile "input.txt"
-    let instructions = map read . lines $ input :: [Instruction]
+    let instructions = map read . lines $ input
         initState = (0, 0, S.empty)
         mutated = map (\i -> runProgram (mutateAt i instructions) initState) [0..length instructions - 1]
     print . fst $ runProgram instructions initState
