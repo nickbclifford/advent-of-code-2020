@@ -1,26 +1,32 @@
 import Data.List
 import Utils
 
--- stole this from stack overflow lol
-windows m = foldr (zipWith (:)) (repeat []) . take m . tails
+-- I think sliding windows are really neat
+windows :: Int -> [a] -> [[a]]
+windows m xs =
+    if length xs == m
+    then [xs]
+    else (take m xs) : windows m (tail xs)
 
-untilInvalidIdx (n:ns) seen =
+findInvalidIdx :: [Integer] -> [Integer] -> Int
+findInvalidIdx (n:ns) seen =
     if n `elem` [x + y | x <- seen, y <- seen]
-    then 1 + untilInvalidIdx ns (tail seen ++ [n])
+    then 1 + findInvalidIdx ns (tail seen ++ [n])
     else 0
 
-findWindow invalid nums n = case find ((== invalid) . sum) (windows n nums) of
-    Just window -> window
-    Nothing -> findWindow invalid nums (n + 1)
+findWindow :: Integer -> [Integer] -> [Integer]
+findWindow invalid nums = go 1
+    where go n = case find ((== invalid) . sum) (windows n nums) of
+            Just window -> window
+            Nothing -> go (n + 1)
 
 main :: IO ()
 main = do
     input <- readFile "input.txt"
-    let nums = map read . lines $ input :: [Integer]
+    let nums = map read . lines $ input
         (preamble, rest) = splitAt 25 nums
-        idx = 25 + untilInvalidIdx rest preamble
+        idx = 25 + findInvalidIdx rest preamble
         invalid = nums !! idx
-        window = findWindow invalid (take idx nums) 1
+        window = findWindow invalid (take idx nums)
     print invalid
-    print window
     print $ minimum window + maximum window
