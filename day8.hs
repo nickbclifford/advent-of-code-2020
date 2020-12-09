@@ -21,17 +21,14 @@ instance Read Instruction where
 data Behavior = Loops | Terminates deriving Eq
 
 runProgram :: [Instruction] -> (Int, Int, S.Set Int) -> (Int, Behavior)
-runProgram instructions (acc, pc, seen) =
-    if pc >= length instructions
-    then (acc, Terminates)
-    else
-        if pc `S.member` seen
-        then (acc, Loops)
-        else runProgram instructions $ case instructions !! pc of
-            Instruction "nop" _ -> (acc, pc + 1, seen')
-            Instruction "acc" p -> (acc + p, pc + 1, seen')
-            Instruction "jmp" p -> (acc, pc + p, seen')
-            where seen' = S.insert pc seen
+runProgram instructions (acc, pc, seen)
+    | pc >= length instructions = (acc, Terminates)
+    | pc `S.member` seen        = (acc, Loops)
+    | otherwise = runProgram instructions $ case instructions !! pc of
+        Instruction "nop" _ -> (acc, pc + 1, seen')
+        Instruction "acc" p -> (acc + p, pc + 1, seen')
+        Instruction "jmp" p -> (acc, pc + p, seen')
+        where seen' = S.insert pc seen
 
 mutate :: Instruction -> Instruction
 mutate i@(Instruction "acc" _) = i
@@ -45,7 +42,7 @@ mutateAt i xs = case splitAt i xs of
 
 main :: IO ()
 main = do
-    input <- readFile "input.txt"
+    input <- readFile "input8.txt"
     let instructions = map read . lines $ input
         initState = (0, 0, S.empty)
         mutated = map (\i -> runProgram (mutateAt i instructions) initState) [0..length instructions - 1]
