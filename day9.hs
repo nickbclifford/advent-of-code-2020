@@ -1,5 +1,4 @@
 import Data.List
-import Utils
 
 -- I think sliding windows are really neat
 windows :: Int -> [a] -> [[a]]

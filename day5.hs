@@ -1,5 +1,4 @@
 import Data.List
-import Utils
 
 binSearch :: Char -> Int -> Int -> String -> Int
 binSearch _ _ max [] = max

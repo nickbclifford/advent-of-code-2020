@@ -3,7 +3,7 @@ import Data.Char
 import Data.Map.Strict
 import Text.ParserCombinators.ReadP
 import Text.Read (readMaybe)
-import Utils hiding (count)
+import Utils
 
 
 type Passport = Map String String

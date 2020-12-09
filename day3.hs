@@ -1,5 +1,3 @@
-import Utils
-
 type Grid = [[Char]]
 
 isTree :: Grid -> Int -> Int -> Integer

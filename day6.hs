@@ -1,7 +1,6 @@
 import qualified Data.Text as T
 import qualified Data.Text.IO as TI
 import qualified Data.Set as S
-import Utils
 
 main :: IO ()
 main = do

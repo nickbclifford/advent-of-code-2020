@@ -1,6 +1,5 @@
 import Data.List
 import Data.Maybe
-import Utils
 
 findSum :: Int -> [Int] -> Maybe (Int, Int)
 findSum n [] = Nothing
