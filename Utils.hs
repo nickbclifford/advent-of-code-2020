@@ -14,3 +14,9 @@ parseInt = read <$> R.munch1 isDigit
 
 stringSize :: Int -> R.ReadP String
 stringSize n = R.count n R.get
+
+windows :: Int -> [a] -> [[a]]
+windows m xs =
+    if length xs == m
+    then [xs]
+    else (take m xs) : windows m (tail xs)

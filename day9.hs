@@ -1,11 +1,5 @@
 import Data.List
-
--- I think sliding windows are really neat
-windows :: Int -> [a] -> [[a]]
-windows m xs =
-    if length xs == m
-    then [xs]
-    else (take m xs) : windows m (tail xs)
+import Utils
 
 findInvalidIdx :: [Integer] -> [Integer] -> Int
 findInvalidIdx (n:ns) seen =
