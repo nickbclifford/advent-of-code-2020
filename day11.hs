@@ -5,20 +5,23 @@ type Index = (Int, Int)
 type Seats = Array Index Char
 type Size = (Int, Int)
 
+outOfBounds :: Size -> Index -> Bool
+outOfBounds (sizeX, sizeY) (x, y) = x > sizeX || x < 1 || y > sizeY || y < 1
+
 directions :: [(Int, Int)] -- we don't directly index with these so I don't want to call them Indexes
 directions = [dir | dx <- [-1..1], dy <- [-1..1], let dir = (dx, dy), dir /= (0, 0)]
 
 occupied :: Size -> Seats -> Index -> Int
-occupied (sizeX, sizeY) seats (x, y) = count '#' [getSeat (x + dx) (y + dy) | (dx, dy) <- directions ]
-    where getSeat x y =
-            if x > sizeX || x < 1 || y > sizeY || y < 1
+occupied size seats (x, y) = count '#' [getSeat ((x + dx), (y + dy)) | (dx, dy) <- directions ]
+    where getSeat idx =
+            if outOfBounds size idx
             then '.'
-            else seats ! (x, y)
+            else seats ! idx
 
 occupiedInDir :: Size -> Seats -> Index -> Int
-occupiedInDir (sizeX, sizeY) seats (x, y) = count '#' [getSeat (x + dx) (y + dy) dx dy | (dx, dy) <- directions]
+occupiedInDir size seats (x, y) = count '#' [getSeat (x + dx) (y + dy) dx dy | (dx, dy) <- directions]
     where getSeat x' y' dx dy
-            | x' > sizeX || x' < 1 || y' > sizeY || y' < 1 = '.'
+            | outOfBounds size (x', y') = '.'
             | seat /= '.' = seat
             | otherwise = getSeat (x' + dx) (y' + dy) dx dy
             where seat = seats ! (x', y')
