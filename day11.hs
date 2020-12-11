@@ -1,61 +1,61 @@
+import Data.Array
 import Utils
 
+type Index = (Int, Int)
+type Seats = Array Index Char
 type Size = (Int, Int)
 
-directions :: [(Int, Int)]
+directions :: [(Int, Int)] -- we don't directly index with these so I don't want to call them Indexes
 directions = [dir | dx <- [-1..1], dy <- [-1..1], let dir = (dx, dy), dir /= (0, 0)]
 
-occupied :: Size -> [[Char]] -> Int -> Int -> Int
-occupied (sizeX, sizeY) seats x y = count '#' [getSeat (x + dx) (y + dy) | (dx, dy) <- directions ]
+occupied :: Size -> Seats -> Index -> Int
+occupied (sizeX, sizeY) seats (x, y) = count '#' [getSeat (x + dx) (y + dy) | (dx, dy) <- directions ]
     where getSeat x y =
-            if y >= sizeY || y < 0
+            if x > sizeX || x < 1 || y > sizeY || y < 1
             then '.'
-            else 
-                if x >= sizeX || x < 0
-                then '.'
-                else seats !! y !! x
+            else seats ! (x, y)
 
-occupiedInDir :: Size -> [[Char]] -> Int -> Int -> Int
-occupiedInDir (sizeX, sizeY) seats x y = count '#' [getSeat (x + dx) (y + dy) dx dy | (dx, dy) <- directions]
+occupiedInDir :: Size -> Seats -> Index -> Int
+occupiedInDir (sizeX, sizeY) seats (x, y) = count '#' [getSeat (x + dx) (y + dy) dx dy | (dx, dy) <- directions]
     where getSeat x' y' dx dy
-            | x' >= sizeX || x' < 0 || y' >= sizeY || y' < 0 = '.'
+            | x' > sizeX || x' < 1 || y' > sizeY || y' < 1 = '.'
             | seat /= '.' = seat
             | otherwise = getSeat (x' + dx) (y' + dy) dx dy
-            where seat = (seats !! y' !! x')
+            where seat = seats ! (x', y')
 
-stepAdj :: Size -> [[Char]] -> [[Char]]
-stepAdj size@(sizeX, sizeY) seats = 
-    [ [
-        case row !! x of
-            'L' | occupied size seats x y == 0 -> '#'
-            '#' | occupied size seats x y >= 4 -> 'L'
-            c -> c
-        | x <- [0..sizeX - 1], let row = seats !! y ]
-    | y <- [0..sizeY- 1] ]
+type Step = Size -> Seats -> Seats
 
-stepDir :: Size -> [[Char]] -> [[Char]]
-stepDir size@(sizeX, sizeY) seats = 
-    [ [
-        case row !! x of
-            'L' | occupiedInDir size seats x y == 0 -> '#'
-            '#' | occupiedInDir size seats x y >= 5 -> 'L'
-            c -> c
-        | x <- [0..sizeX - 1], let row = seats !! y ]
-    | y <- [0..sizeY- 1] ]
+stepAdj :: Step
+stepAdj size seats = array ((1, 1), size) $ do
+    (idx, seat) <- assocs seats
+    return (idx, case seats ! idx of
+            'L' | occupied size seats idx == 0 -> '#'
+            '#' | occupied size seats idx >= 4 -> 'L'
+            c -> c)
 
-untilEq :: Size -> (Size -> [[Char]] -> [[Char]]) -> [[Char]] -> [[Char]] -> [[Char]]
-untilEq size step prev seats =
-    let seats' = step size seats in
-    if prev == seats'
-    then seats'
-    else untilEq size step seats seats'
+stepDir :: Step
+stepDir size seats = array ((1, 1), size) $ do
+    (idx, seat) <- assocs seats
+    return (idx, case seats ! idx of
+            'L' | occupiedInDir size seats idx == 0 -> '#'
+            '#' | occupiedInDir size seats idx >= 5 -> 'L'
+            c -> c)
+
+untilEq :: Size -> Step -> Seats -> Seats
+untilEq size step current =
+    let next = step size current in
+    if next == current
+    then next
+    else untilEq size step next
 
 main :: IO ()
 main = do
     input <- readFile "input.txt"
-    let seats = lines input
-        sizeY = length seats
-        sizeX = length (head seats)
+    let seatsStrs = lines input
+        sizeY = length seatsStrs
+        sizeX = length (head seatsStrs)
         size = (sizeX, sizeY)
-    print . sum . map (count '#') $ untilEq size stepAdj seats seats
-    print . sum . map (count '#') $ untilEq size stepDir seats seats
+        seats = array ((1, 1), size) $
+            [((x, y), seatsStrs !! (y - 1) !! (x - 1)) | x <- [1..sizeX], y <- [1..sizeY]]
+    print . count '#' . elems $ untilEq size stepAdj seats
+    print . count '#' . elems $ untilEq size stepDir seats
