@@ -12,7 +12,7 @@ directions :: [(Int, Int)] -- we don't directly index with these so I don't want
 directions = [dir | dx <- [-1..1], dy <- [-1..1], let dir = (dx, dy), dir /= (0, 0)]
 
 occupied :: Size -> Seats -> Index -> Int
-occupied size seats (x, y) = count '#' [getSeat ((x + dx), (y + dy)) | (dx, dy) <- directions ]
+occupied size seats (x, y) = count '#' [getSeat ((x + dx), (y + dy)) | (dx, dy) <- directions]
     where getSeat idx =
             if outOfBounds size idx
             then '.'
@@ -58,7 +58,7 @@ main = do
         sizeY = length seatsStrs
         sizeX = length (head seatsStrs)
         size = (sizeX, sizeY)
-        seats = array ((1, 1), size) $
+        seats = array ((1, 1), size)
             [((x, y), seatsStrs !! (y - 1) !! (x - 1)) | x <- [1..sizeX], y <- [1..sizeY]]
     print . count '#' . elems $ untilEq size stepAdj seats
     print . count '#' . elems $ untilEq size stepDir seats
