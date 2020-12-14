@@ -12,7 +12,7 @@ directions :: [(Int, Int)] -- we don't directly index with these so I don't want
 directions = [dir | dx <- [-1..1], dy <- [-1..1], let dir = (dx, dy), dir /= (0, 0)]
 
 occupied :: Size -> Seats -> Index -> Int
-occupied size seats (x, y) = count '#' [getSeat ((x + dx), (y + dy)) | (dx, dy) <- directions]
+occupied size seats (x, y) = count '#' [getSeat (x + dx, y + dy) | (dx, dy) <- directions]
     where getSeat idx =
             if outOfBounds size idx
             then '.'
@@ -31,7 +31,7 @@ type Step = Size -> Seats -> Seats
 stepAdj :: Step
 stepAdj size seats = array ((1, 1), size) $ do
     (idx, seat) <- assocs seats
-    return (idx, case seats ! idx of
+    return (idx, case seat of
             'L' | occupied size seats idx == 0 -> '#'
             '#' | occupied size seats idx >= 4 -> 'L'
             c -> c)
@@ -39,7 +39,7 @@ stepAdj size seats = array ((1, 1), size) $ do
 stepDir :: Step
 stepDir size seats = array ((1, 1), size) $ do
     (idx, seat) <- assocs seats
-    return (idx, case seats ! idx of
+    return (idx, case seat of
             'L' | occupiedInDir size seats idx == 0 -> '#'
             '#' | occupiedInDir size seats idx >= 5 -> 'L'
             c -> c)
