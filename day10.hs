@@ -23,5 +23,5 @@ main = do
         builtIn = maximum adapters + 3
         allAdapters = sort $ 0 : builtIn : adapters
         diffs = map (foldr1 subtract) . windows 2 $ allAdapters
-    print $ (count 1 diffs) * (count 3 diffs)
+    print $ count 1 diffs * count 3 diffs
     print $ evalState (countPaths allAdapters builtIn) M.empty

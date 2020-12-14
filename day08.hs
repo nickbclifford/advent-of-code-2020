@@ -37,7 +37,7 @@ mutate   (Instruction "nop" p) = Instruction "jmp" p
 
 mutateAt :: Int -> [Instruction] -> [Instruction]
 mutateAt i xs = case splitAt i xs of
-    (first, ins:rest) -> first ++ (mutate ins):rest
+    (first, ins:rest) -> first ++ mutate ins : rest
     (first, []) -> first
 
 main :: IO ()

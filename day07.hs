@@ -33,10 +33,7 @@ instance Read RuleT where
     readsPrec _ = readP_to_S (Rule <$> parseRule)
 
 containsGold :: Rules -> [String] -> Bool
-containsGold rules colors =
-    if "shiny gold" `elem` colors
-    then True
-    else any (containsGold rules . map snd . (rules M.!)) colors
+containsGold rules colors = ("shiny gold" `elem` colors) || any (containsGold rules . map snd . (rules M.!)) colors
 
 totalBags :: Rules -> String -> Int
 totalBags rules color = 1 + sum (map (\(i, c) -> i * totalBags rules c) (rules M.! color))

@@ -5,7 +5,9 @@ import Text.ParserCombinators.ReadP
 import Utils
 
 parseMask :: ReadP Instruction
-parseMask = Mask <$> (string "mask = " *> stringSize 36)
+parseMask = Mask
+    <$  string "mask = "
+    <*> stringSize 36
 
 parseMem :: ReadP Instruction
 parseMem = Mem
@@ -19,9 +21,7 @@ data Instruction = Mask String | Mem Int Int
 instance Read Instruction where
     readsPrec _ = readP_to_S (parseMask +++ parseMem)
 
-type Memory = M.Map Int Int
-
-data MachineState = MState { currentMask :: String, memory :: Memory }
+data MachineState = MState { currentMask :: String, memory :: M.Map Int Int }
 
 runInstruction1 :: MachineState -> Instruction -> MachineState
 runInstruction1 s (Mask mStr) = s { currentMask = mStr }

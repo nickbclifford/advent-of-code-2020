@@ -42,7 +42,7 @@ hasAllFields :: Passport -> Bool
 hasAllFields p = all (`member` p) ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"]
 
 isValid :: Passport -> Bool
-isValid p = foldr1 (&&)
+isValid p = and
     [
         hasAllFields p,
         let byr = read (p ! "byr")
