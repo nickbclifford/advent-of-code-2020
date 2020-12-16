@@ -38,15 +38,13 @@ main :: IO ()
 main = do
     input <- readFile "input.txt"
     let Notes fields ticket nearby = read input
-        invalidFields = filter (\i -> not $ any (`validField` i) fields) (concat nearby)
-        validTickets = filter (all (\i -> any (`validField` i) fields)) nearby
-        fullPos = transpose validTickets
+        fullPos = transpose . filter (all (\i -> any (`validField` i) fields)) $ nearby
         orderedFields = go fullPos fields
             where go [] [] = []
                   go allPos remaining =
                       let Just f = find (\f -> countPred (all (validField f)) allPos == 1) remaining
                           Just pos = find (all (validField f)) allPos
-                          Just ogIdx = pos `elemIndex` fullPos
-                      in (ogIdx, name f) : go (delete pos allPos) (deleteBy ((==) `on` name) f remaining)
-    print $ sum invalidFields
+                          Just idx = pos `elemIndex` fullPos
+                      in (idx, name f) : go (delete pos allPos) (deleteBy ((==) `on` name) f remaining)
+    print . sum . filter (\i -> not $ any (`validField` i) fields) . concat $ nearby
     print . product . map ((ticket !!) . fst) . filter (isPrefixOf "departure" . snd) $ orderedFields
