@@ -2,13 +2,11 @@ import Data.Char
 import Text.ParserCombinators.ReadP hiding (count)
 import Utils
 
-data Password = Password Int Int Char String
+data Password = Password Range Char String
 
 parsePassword :: ReadP Password
 parsePassword = Password
-    <$> parseInt
-    <*  char '-'
-    <*> parseInt
+    <$> parseRange
     <*  skipSpaces
     <*> get
     <*  char ':'
@@ -19,12 +17,10 @@ instance Read Password where
     readsPrec _ = readP_to_S parsePassword
 
 isValidPassword :: Password -> Bool
-isValidPassword (Password low high letter pass) =
-    let amount = count letter pass
-    in amount >= low && amount <= high
+isValidPassword (Password range letter pass) = inRange range (count letter pass)
 
 positionsValid :: Password -> Bool
-positionsValid (Password pos1 pos2 letter pass) =
+positionsValid (Password (Range pos1 pos2) letter pass) =
     let c1 = pass !! (pos1 - 1)
         c2 = pass !! (pos2 - 1)
     in (c1 == letter) /= (c2 == letter) -- (/=) on Bools is an xor

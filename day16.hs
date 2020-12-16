@@ -1,21 +1,11 @@
 import Control.Applicative
 import Data.Char
+import Data.Function
 import Data.List
 import Text.ParserCombinators.ReadP
 import Utils
 
-data Range = Range Int Int
-
-inRange :: Range -> Int -> Bool
-inRange (Range lo hi) = liftA2 (&&) (>= lo) (<= hi)
-
-parseRange :: ReadP Range
-parseRange = Range
-    <$> parseInt
-    <*  char '-'
-    <*> parseInt
-
-data Field = Field String Range Range
+data Field = Field { name :: String, r1 :: Range, r2 :: Range }
 
 parseField :: ReadP Field
 parseField = Field
@@ -50,16 +40,13 @@ main = do
     let Notes fields ticket nearby = read input
         invalidFields = filter (\i -> not $ any (`validField` i) fields) (concat nearby)
         validTickets = filter (all (\i -> any (`validField` i) fields)) nearby
-        byPos = transpose validTickets
-        orderedFields = go byPos fields
+        fullPos = transpose validTickets
+        orderedFields = go fullPos fields
             where go [] [] = []
-                  go pos remaining = 
-                      let Just (fIdx, f) = find (\(_, f) -> countPred (all (validField f)) pos == 1) $ zip [0..] remaining
-                          Just pIdx = findIndex (all (validField f)) pos
-                          (leftP, _:rightP) = splitAt pIdx pos
-                          (leftF, _:rightF) = splitAt fIdx remaining
-                          Field name _ _ = f
-                          Just ogIdx = (pos !! pIdx) `elemIndex` byPos -- this feels super gross
-                      in (ogIdx, name) : go (leftP ++ rightP) (leftF ++ rightF)
+                  go allPos remaining =
+                      let Just f = find (\f -> countPred (all (validField f)) allPos == 1) remaining
+                          Just pos = find (all (validField f)) allPos
+                          Just ogIdx = pos `elemIndex` fullPos
+                      in (ogIdx, name f) : go (delete pos allPos) (deleteBy ((==) `on` name) f remaining)
     print $ sum invalidFields
     print . product . map ((ticket !!) . fst) . filter (isPrefixOf "departure" . snd) $ orderedFields

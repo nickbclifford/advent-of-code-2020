@@ -34,8 +34,8 @@ instance Read Height where
     readsPrec _ = readP_to_S parseHeight
 
 validHeight :: Height -> Bool
-validHeight (Height value unit) = (unit == "cm" && value >= 150 && value <= 193) ||
-                                  (unit == "in" && value >= 56  && value <= 76 )
+validHeight (Height value unit) = (unit == "cm" && inRange (Range 150 193) value) ||
+                                  (unit == "in" && inRange (Range 56  76 ) value)
 
     
 hasAllFields :: Passport -> Bool
@@ -45,18 +45,13 @@ isValid :: Passport -> Bool
 isValid p = and
     [
         hasAllFields p,
-        let byr = read (p ! "byr")
-         in byr >= 1920 && byr <= 2002,
-        let iyr = read (p ! "iyr")
-         in iyr >= 2010 && iyr <= 2020,
-        let eyr = read (p ! "eyr")
-         in eyr >= 2020 && eyr <= 2030,
-        let hgt = readMaybe (p ! "hgt")
-         in maybe False validHeight hgt,
+        inRange (Range 1920 2002) (read (p ! "byr")),
+        inRange (Range 2010 2020) (read (p ! "iyr")),
+        inRange (Range 2020 2030) (read (p ! "eyr")),
+        maybe False validHeight (readMaybe (p ! "hgt")),
         let (first:rest) = p ! "hcl"
          in first == '#' && length rest == 6 && all isHexDigit rest,
-        let ecl = p ! "ecl"
-         in elem ecl ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"],
+        (p ! "ecl") `elem` ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"],
         let pid = p ! "pid"
          in length pid == 9 && all isDigit pid
     ]
