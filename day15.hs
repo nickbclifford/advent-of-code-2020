@@ -1,4 +1,5 @@
 import qualified Data.Map.Strict as M
+import Utils
 
 type State = (Int, Int, M.Map Int Int)
 
@@ -8,10 +9,6 @@ turn (n, last, nums) =
             Just i -> n - i
             Nothing -> 0
     in val `seq` (n + 1, val, M.insert last n nums)
-
-nTimes :: (a -> a) -> a -> Int -> a
-nTimes f i 1 = f i
-nTimes f i n = let v = nTimes f i (n - 1) in v `seq` f v
 
 main :: IO ()
 main = do

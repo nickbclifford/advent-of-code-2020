@@ -32,3 +32,7 @@ parseRange = Range
     <$> parseInt
     <*  R.char '-'
     <*> parseInt
+
+nTimes :: (a -> a) -> a -> Int -> a
+nTimes f i 1 = f i
+nTimes f i n = let v = nTimes f i (n - 1) in v `seq` f v
