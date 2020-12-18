@@ -42,6 +42,5 @@ main = do
         lenR = [0..length list - 1]
         init3 = M.fromList [ ((x, y, 0 :: Int)          , list !! y !! x) | x <- lenR, y <- lenR]
         init4 = M.fromList [ ((x, y, 0 :: Int, 0 :: Int), list !! y !! x) | x <- lenR, y <- lenR]
-    -- do stuff
     print . count '#' . M.elems $ nTimes step init3 6
     print . count '#' . M.elems $ nTimes step init4 6
