@@ -12,6 +12,10 @@ eval (Number n) = n
 operator :: Char -> ReadP Char
 operator = between skipSpaces skipSpaces . char
 
+parens :: ReadP a -> ReadP a
+parens = between (char '(') (char ')')
+
+
 parseAdd, parseMul :: ReadP (Exp -> Exp -> Exp)
 parseAdd = Add <$ operator '+'
 parseMul = Mul <$ operator '*'
@@ -19,11 +23,8 @@ parseMul = Mul <$ operator '*'
 parseNum :: ReadP Exp
 parseNum = Number <$> parseInt
 
-parseParens :: ReadP Exp
-parseParens = between (operator '(') (operator ')') parseExp
-
 parseExp :: ReadP Exp
-parseExp = chainl1 (parseNum +++ parseParens) (parseAdd +++ parseMul)
+parseExp = chainl1 (parseNum +++ parens parseExp) (parseAdd +++ parseMul)
 
 instance Read Exp where
     readsPrec _ = readP_to_S parseExp
@@ -31,21 +32,17 @@ instance Read Exp where
 
 newtype Exp' = Exp' { getExp :: Exp }
 
-parseParens' :: ReadP Exp
-parseParens' = between (operator '(') (operator ')') parseExp'
-
 parseExp' :: ReadP Exp
-parseExp' = chainl1 (chainl1 (parseNum +++ parseParens') parseAdd) parseMul
+parseExp' = chainl1 (chainl1 (parseNum +++ parens parseExp') parseAdd) parseMul
 
 instance Read Exp' where
     readsPrec _ = readP_to_S (Exp' <$> parseExp')
 
 
-
 main :: IO ()
 main = do
     input <- readFile "input.txt"
-    let exps  = map read . lines $ input
+    let exps  = map read . lines $ input -- read magic hiding that these lines are parsing two different things
         exps' = map read . lines $ input
-    print . sum . map eval $ exps
+    print . sum . map  eval           $ exps
     print . sum . map (eval . getExp) $ exps'
