@@ -52,7 +52,7 @@ main = do
                 tileId t1 /= tileId t2,
                 (tag1, tf1) <- transformations,
                 (tag2, tf2) <- transformations,
-                (tag1, tag2) == (Id, Id) || tag1 /= tag2,
+                (tag1, tag2) /= (Id, Id),
                 matches (tf1 t1) (tf2 t2)
             ]
     print $ length constraints
