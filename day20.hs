@@ -1,5 +1,4 @@
 import Data.List
-import Data.Function
 import Text.ParserCombinators.ReadP hiding (count)
 import Utils
 
@@ -31,28 +30,22 @@ vflip = tf $ transpose . map reverse . transpose
 rotateCw  = tf $ map reverse . transpose
 rotateCcw = tf $ transpose . map reverse
 
-matches t1 t2 = or [
-        topEdge t1 == bottomEdge t2,
-        rightEdge t1 == leftEdge t2,
-        bottomEdge t1 == topEdge t2,
-        leftEdge t1 == rightEdge t2
-    ]
-
-data Tag = Id | HFlip | VFlip | RotateCCW | RotateCW | RotateTwice deriving (Show, Eq)
-
-transformations = [(Id, id), (HFlip, hflip), (VFlip, vflip), (RotateCCW, rotateCcw), (RotateCW, rotateCw), (RotateTwice, rotateCw . rotateCw)]
+transformations = [id, hflip, vflip, rotateCcw, rotateCw, rotateCw . rotateCw]
+getEdges = [topEdge, rightEdge, bottomEdge, leftEdge]
 
 main :: IO ()
 main = do
     input <- readFile "input.txt"
     let All tiles = read input
-        constraints = [ ((tag1, tileId t1), (tag2, tileId t2)) |
-                t1 <- tiles,
-                t2 <- tiles,
-                tileId t1 /= tileId t2,
-                (tag1, tf1) <- transformations,
-                (tag2, tf2) <- transformations,
-                (tag1, tag2) /= (Id, Id),
-                matches (tf1 t1) (tf2 t2)
-            ]
-    print $ length constraints
+        findConnections t1 = [ tileId t2 |
+            t2 <- tiles,
+            tileId t1 /= tileId t2,
+            let tfs = transformations <*> pure t2,
+            let edges = getEdges <*> pure t1,
+            any (`elem` edges) (getEdges <*> tfs) ]
+        connections = map (\t1 -> (tileId t1, findConnections t1)) tiles
+        corners = filter ((== 2) . length . snd) connections
+        edges = filter ((== 3) . length . snd) connections
+    print . product . map fst $ corners
+    print corners
+    print edges
