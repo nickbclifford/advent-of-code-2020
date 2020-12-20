@@ -36,3 +36,8 @@ parseRange = Range
 nTimes :: (a -> a) -> a -> Int -> a
 nTimes f i 1 = f i
 nTimes f i n = let v = nTimes f i (n - 1) in v `seq` f v
+
+chunkList n xs =
+    if n >= length xs
+    then [xs]
+    else let (prev, next) = splitAt n xs in prev : chunkList n next
