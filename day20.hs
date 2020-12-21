@@ -1,9 +1,10 @@
 import Control.Applicative
+import Control.Monad
 import Data.List
 import qualified Data.Map.Strict as M
 import Data.Maybe
 import Debug.Trace
-import Text.ParserCombinators.ReadP
+import Text.ParserCombinators.ReadP hiding (count)
 import Utils
 
 data Tile = Tile { tileId :: Int, grid :: [[Char]] }
@@ -32,10 +33,9 @@ leftEdge = map head . grid
 
 tf f t = t { grid = f (grid t) }
 
-hflip = tf $ map reverse
-vflip = tf $ transpose . map reverse . transpose
-
-rotate = tf $ map reverse . transpose
+hflip = map reverse
+vflip = transpose . map reverse . transpose
+rotate = map reverse . transpose
 
 transformations = liftA2 (.) [id, hflip, vflip] [id, rotate, rotate . rotate, rotate . rotate . rotate]
 
@@ -48,10 +48,24 @@ matches t1 t2
 
 nextTile [] picMap = picMap
 nextTile remaining picMap =
-    let tfs = transformations <*> remaining
+    let tfs = liftA2 tf transformations remaining
         connections = M.map (\t -> mapMaybe (matches t) tfs) picMap
         Just ((x, y), (tile, (dx, dy)):_) = find (not . null . snd) . M.toList $ connections
     in nextTile (delete tile remaining) (M.insert (x + dx, y + dy) tile picMap)
+
+monsters = transformations <*> pure [
+        "                  # ",
+        "#    ##    ##    ###",
+        " #  #  #  #  #  #   "
+    ]
+
+checkImage :: [[Char]] -> [[Char]] -> Int
+checkImage image monster = sum $ do
+    cols <- windows (length monster) image
+    rows <- map (\c -> windows (length c) c) cols
+    let pairs = zipWith zip rows monster
+    guard $ countPred (== ('#', '#')) (concat pairs) == 15
+    return 15
 
 main :: IO ()
 main = do
@@ -60,5 +74,10 @@ main = do
         dim = round . sqrt . fromIntegral . length $ tiles
         picTiles = chunkList dim . M.elems $ nextTile ts (M.singleton (0, 0) t)
         corners = map ($ picTiles) [head . head, last . head, head . last, last . last]
-    print picTiles
+        grids = map (map (map (init . tail) . init . tail . grid)) picTiles
+        image = concatMap (map concat . transpose) grids
+        totalWaves = count '#' (concat image)
+        Just monsterWaves = find (/= 0) . map (checkImage image) $ monsters
     print . product . map tileId $ corners
+    putStrLn $ unlines image
+    print $ totalWaves - monsterWaves
